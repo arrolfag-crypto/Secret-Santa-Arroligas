@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amigo Secreto Familiar</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; max-width: 400px; margin: auto; text-align: center; background-color: #f7f9fc; color: #333; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 20px; }
+    select, button { width: 100%; padding: 12px; margin-top: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+    button { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
+    button:hover { background-color: #218838; }
+    .resultado { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 8px; }
+  </style>
+</head>
+<body>
+
+  <h2>🎁 Amigo Secreto Familiar 🎁</h2>
+
+  <div class="card">
+    <label for="select-persona"><b>¿Quién eres?</b></label>
+    <select id="select-persona">
+      <option value="">-- Selecciona tu nombre --</option>
+    </select>
+    
+    <button onclick="revelarAmigo()">Ver mi Amigo Secreto</button>
+
+    <div id="resultado" class="resultado" style="display:none;">
+      <p style="margin:0; font-size: 14px; color: #6c757d;">Te tocó regalarle a:</p>
+      <h1 id="nombre-asignado" style="color: #d9534f; margin: 10px 0 0 0;"></h1>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================
+    // EDITAR AQUÍ: Escribe los nombres de los integrantes
+    // =========================================================
+    const participantes = ["Mamá Yubellka", "Buelo", "Neil", "Frank", "Zoe", "Brenda", "Mateo", "Nia"];
+
+    // Función para realizar el sorteo sin repeticiones ni auto-asignación
+    function generarSorteo(lista) {
+      let receptores = [...lista];
+      let resultado = {};
+      let valido = false;
+
+      while (!valido) {
+        receptores.sort(() => Math.random() - 0.5);
+        valido = true;
+        for (let i = 0; i < lista.length; i++) {
+          if (lista[i] === receptores[i]) {
+            valido = false;
+            break;
+          }
+        }
+      }
+
+      for (let i = 0; i < lista.length; i++) {
+        resultado[lista[i]] = receptores[i];
+      }
+      return resultado;
+    }
+
+    // Obtener sorteo guardado o generar uno nuevo
+    let asignaciones = JSON.parse(localStorage.getItem('sorteo_amigo_secreto'));
+    if (!asignaciones) {
+      asignaciones = generarSorteo(participantes);
+      localStorage.setItem('sorteo_amigo_secreto', JSON.stringify(asignaciones));
+    }
+
+    // Cargar la lista de nombres en el menú desplegable
+    const select = document.getElementById("select-persona");
+    participantes.sort().forEach(persona => {
+      let option = document.createElement("option");
+      option.value = persona;
+      option.textContent = persona;
+      select.appendChild(option);
+    });
+
+    // Función al presionar el botón
+    function revelarAmigo() {
+      const persona = select.value;
+      if (!persona) {
+        alert("Por favor selecciona tu nombre de la lista");
+        return;
+      }
+      
+      document.getElementById("nombre-asignado").textContent = asignaciones[persona];
+      document.getElementById("resultado").style.display = "block";
+    }
+  </script>
+</body>
+</html>
