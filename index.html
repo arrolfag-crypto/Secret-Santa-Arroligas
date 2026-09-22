@@ -33,18 +33,37 @@
 
   <script>
     // =========================================================
-    // EDITAR AQUÍ: Escribe los nombres de los integrantes
+    // 1. LISTA DE PARTICIPANTES
     // =========================================================
-    const participantes = ["Mamá Yubellka", "Buelo", "Neil", "Frank", "Zoe", "Brenda", "Mateo", "Nia", "Nia"];
+    const participantes = ["Mamá Yubellka", "Buelo", "Neil", "Frank", "Zoe", "Brenda", "Mateo", "Nia", "Roxana"];
 
-    // Función para realizar el sorteo sin repeticiones ni auto-asignación
-    function generarSorteo(lista) {
+    // =========================================================
+    // 2. CLAVE DEL SORTEO (Cambia esto para iniciar un nuevo sorteo)
+    // =========================================================
+    const ID_SORTEO = "2026_V1"; 
+
+    // Generador aleatorio reproducible (Pseudo-Random basado en semilla)
+    function crearRandom(semilla) {
+      let hash = 0;
+      for (let i = 0; i < semilla.length; i++) {
+        hash = semilla.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return function() {
+        let x = Math.sin(hash++) * 10000;
+        return x - Math.floor(x);
+      };
+    }
+
+    // Algoritmo de sorteo fijo y sin repeticiones basado en la clave ID_SORTEO
+    function realizarSorteoMatematico(lista, clave) {
+      let rng = crearRandom(clave);
       let receptores = [...lista];
       let resultado = {};
       let valido = false;
 
       while (!valido) {
-        receptores.sort(() => Math.random() - 0.5);
+        // Mezclar lista de forma consistente
+        receptores.sort(() => rng() - 0.5);
         valido = true;
         for (let i = 0; i < lista.length; i++) {
           if (lista[i] === receptores[i]) {
@@ -60,30 +79,24 @@
       return resultado;
     }
 
-    // Obtener sorteo guardado o generar uno nuevo
-    let asignaciones = JSON.parse(localStorage.getItem('sorteo_amigo_secreto'));
-    if (!asignaciones) {
-      asignaciones = generarSorteo(participantes);
-      localStorage.setItem('sorteo_amigo_secreto', JSON.stringify(asignaciones));
-    }
+    // Generar las asignaciones únicas para este ID_SORTEO
+    const asignaciones = realizarSorteoMatematico(participantes, ID_SORTEO);
 
-    // Cargar la lista de nombres en el menú desplegable
+    // Cargar nombres ordenados en el menú desplegable
     const select = document.getElementById("select-persona");
-    participantes.sort().forEach(persona => {
+    participantes.slice().sort().forEach(persona => {
       let option = document.createElement("option");
       option.value = persona;
       option.textContent = persona;
       select.appendChild(option);
     });
 
-    // Función al presionar el botón
     function revelarAmigo() {
       const persona = select.value;
       if (!persona) {
         alert("Por favor selecciona tu nombre de la lista");
         return;
       }
-      
       document.getElementById("nombre-asignado").textContent = asignaciones[persona];
       document.getElementById("resultado").style.display = "block";
     }
