@@ -11,6 +11,7 @@
     button { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
     button:hover { background-color: #218838; }
     .resultado { margin-top: 20px; padding: 15px; background-color: #e9ecef; border-radius: 8px; }
+    .bloqueado { background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 14px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -23,26 +24,24 @@
       <option value="">-- Selecciona tu nombre --</option>
     </select>
     
-    <button onclick="revelarAmigo()">Ver mi Amigo Secreto</button>
+    <button id="btn-revelar" onclick="revelarAmigo()">Ver mi Amigo Secreto</button>
 
     <div id="resultado" class="resultado" style="display:none;">
       <p style="margin:0; font-size: 14px; color: #6c757d;">Te tocó regalarle a:</p>
       <h1 id="nombre-asignado" style="color: #d9534f; margin: 10px 0 0 0;"></h1>
     </div>
+
+    <div id="mensaje-bloqueo" class="bloqueado" style="display:none;"></div>
   </div>
 
   <script>
-    // =========================================================
     // 1. LISTA DE PARTICIPANTES
-    // =========================================================
     const participantes = ["Mamá Yubellka", "Buelo", "Neil", "Frank", "Zoe", "Brenda", "Mateo", "Nia", "Roxana"];
 
-    // =========================================================
-    // 2. CLAVE DEL SORTEO (Cambia esto para iniciar un nuevo sorteo)
-    // =========================================================
+    // 2. CLAVE DEL SORTEO
     const ID_SORTEO = "2026_V1"; 
 
-    // Generador aleatorio reproducible (Pseudo-Random basado en semilla)
+    // Generador matemático reproducible
     function crearRandom(semilla) {
       let hash = 0;
       for (let i = 0; i < semilla.length; i++) {
@@ -54,7 +53,6 @@
       };
     }
 
-    // Algoritmo de sorteo fijo y sin repeticiones basado en la clave ID_SORTEO
     function realizarSorteoMatematico(lista, clave) {
       let rng = crearRandom(clave);
       let receptores = [...lista];
@@ -62,7 +60,6 @@
       let valido = false;
 
       while (!valido) {
-        // Mezclar lista de forma consistente
         receptores.sort(() => rng() - 0.5);
         valido = true;
         for (let i = 0; i < lista.length; i++) {
@@ -79,10 +76,9 @@
       return resultado;
     }
 
-    // Generar las asignaciones únicas para este ID_SORTEO
     const asignaciones = realizarSorteoMatematico(participantes, ID_SORTEO);
 
-    // Cargar nombres ordenados en el menú desplegable
+    // Cargar selector de nombres
     const select = document.getElementById("select-persona");
     participantes.slice().sort().forEach(persona => {
       let option = document.createElement("option");
@@ -91,13 +87,36 @@
       select.appendChild(option);
     });
 
+    // Comprobar si este dispositivo ya registró una identidad previamente
+    const usuarioRegistrado = localStorage.getItem('usuario_amigo_secreto_' + ID_SORTEO);
+
+    if (usuarioRegistrado) {
+      select.value = usuarioRegistrado;
+      select.disabled = true; // Bloquea el menú desplegable
+      document.getElementById("mensaje-bloqueo").textContent = "Hacer trampa es malo y quita la emoción del juego, no seas chismoso 😉";
+      document.getElementById("mensaje-bloqueo").style.display = "block";
+    }
+
     function revelarAmigo() {
-      const persona = select.value;
-      if (!persona) {
+      const personaSeleccionada = select.value;
+
+      if (!personaSeleccionada) {
         alert("Por favor selecciona tu nombre de la lista");
         return;
       }
-      document.getElementById("nombre-asignado").textContent = asignaciones[persona];
+
+      // Si es la primera vez que consulta desde este teléfono, guardamos su identidad
+      if (!usuarioRegistrado) {
+        localStorage.setItem('usuario_amigo_secreto_' + ID_SORTEO, personaSeleccionada);
+        select.disabled = true;
+        document.getElementById("mensaje-bloqueo").textContent = "Hacer trampa es malo y quita la emoción del juego, no seas chismoso 😉";
+        document.getElementById("mensaje-bloqueo").style.display = "block";
+      } else if (usuarioRegistrado !== personaSeleccionada) {
+        alert("Hacer trampa es malo y quita la emoción del juego, no seas chismoso 😉");
+        return;
+      }
+
+      document.getElementById("nombre-asignado").textContent = asignaciones[personaSeleccionada];
       document.getElementById("resultado").style.display = "block";
     }
   </script>
